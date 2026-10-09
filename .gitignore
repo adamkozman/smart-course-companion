@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+users.json
+reset-codes.json
+*.log
+.DS_Store
+__MACOSX/

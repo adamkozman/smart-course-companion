@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Manage Courses — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/TeacherCourses.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="T_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="T_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="T_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">My Courses</div>
+
+  <div class="Course_Page">
+
+    <!-- CREATE COURSE FORM -->
+    <div class="Course_Creation">
+      <h2>Create a New Course</h2>
+      <div id="createError" class="form-error"></div>
+
+      <p>
+        <label for="courseCodeTeacher">Course Code:</label>
+        <input id="courseCodeTeacher" type="text" placeholder="COMP 232" required />
+      </p>
+      <p>
+        <label for="courseNameTeacher">Course Name:</label>
+        <input id="courseNameTeacher" type="text" placeholder="Mathematics for CS" required />
+      </p>
+      <p>
+        <label for="sectionTeacher">Section:</label>
+        <input id="sectionTeacher" type="text" placeholder="NN" required />
+      </p>
+      <p>
+        <label for="termTeacher">Term:</label>
+        <input id="termTeacher" type="text" placeholder="Winter 2026" required />
+      </p>
+
+      <button id="createBtn" class="user-choice2 primary" type="button">+ Create Course</button>
+    </div>
+
+    <!-- COURSES GRID -->
+    <div class="Teacher_Courses" id="teacherGrid">
+      <div class="empty-state">
+        <span class="spinner"></span> Loading courses…
+      </div>
+    </div>
+
+  </div>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    async function init() {
+      await guardPage('teacher', 'T_Login.html');
+      setupLogout();
+      await loadCourses();
+    }
+
+    async function loadCourses() {
+      const grid = document.getElementById('teacherGrid');
+      try {
+        const courses = await API.get('/api/teacher/courses');
+        renderCourses(courses);
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state" style="color:#ff8080">${e.message}</div>`;
+      }
+    }
+
+    function renderCourses(courses) {
+      const grid = document.getElementById('teacherGrid');
+      if (!courses.length) {
+        grid.innerHTML = '<div class="empty-state">No courses yet. Create one using the form.</div>';
+        return;
+      }
+      grid.innerHTML = courses.map(c => {
+        const statusLabel = c.active ? 'Active' : 'Inactive';
+        const statusCls   = c.active ? 'active' : 'inactive';
+        const toggleLabel = c.active ? 'Disable' : 'Enable';
+        const toggleCls   = c.active ? 'toggle-btn active' : 'toggle-btn';
+
+        return `
+        <div class="Single_Course" data-id="${c.id}">
+          <header>
+            <h3>${escHtml(c.course_code)} — ${escHtml(c.section)}</h3>
+            <p>${escHtml(c.course_name)}</p>
+            <span class="course-status ${statusCls}">${statusLabel}</span>
+          </header>
+          <p><strong>Instructor:</strong> ${escHtml(c.teacher_name)}</p>
+          <p><strong>Term:</strong> ${escHtml(c.term)}</p>
+          <footer>
+            <button class="user-choice2" onclick="goToAssessments(${c.id})">Assessments</button>
+            <button class="user-choice2 ${toggleCls}"
+              onclick="toggleCourse(${c.id}, ${c.active})">${toggleLabel}</button>
+            <button class="user-choice2" onclick="deleteCourse(${c.id}, '${escHtml(c.course_code)}')">Delete</button>
+          </footer>
+        </div>`;
+      }).join('');
+    }
+
+    function goToAssessments(courseId) {
+      sessionStorage.setItem('teacherSelectedCourseId', courseId);
+      window.location.href = 'T_Assessments.html';
+    }
+
+    async function toggleCourse(courseId, currentlyActive) {
+      try {
+        const result = await API.patch(`/api/teacher/courses/${courseId}/toggle`);
+        showToast(`Course ${result.active ? 'enabled' : 'disabled'}.`);
+        await loadCourses();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function deleteCourse(courseId, code) {
+      if (!confirm(`Delete "${code}"? This will remove all its assessments and student data.`)) return;
+      try {
+        await API.delete(`/api/teacher/courses/${courseId}`);
+        showToast(`Deleted ${code}.`);
+        await loadCourses();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    // handle the create course button
+    document.getElementById('createBtn').addEventListener('click', async () => {
+      const code    = document.getElementById('courseCodeTeacher').value.trim();
+      const name    = document.getElementById('courseNameTeacher').value.trim();
+      const section = document.getElementById('sectionTeacher').value.trim();
+      const term    = document.getElementById('termTeacher').value.trim();
+      const errEl   = document.getElementById('createError');
+
+      errEl.className = 'form-error';
+      if (!code || !name || !section || !term) {
+        errEl.textContent = 'All fields are required.';
+        errEl.classList.add('visible');
+        return;
+      }
+
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true;
+      btn.textContent = 'Creating…';
+
+      try {
+        await API.post('/api/teacher/courses', {
+          course_code: code, course_name: name, section, term
+        });
+        ['courseCodeTeacher','courseNameTeacher','sectionTeacher','termTeacher']
+          .forEach(id => document.getElementById(id).value = '');
+        showToast(`Course ${code} created!`);
+        await loadCourses();
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '+ Create Course';
+      }
+    });
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

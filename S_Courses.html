@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>My Courses — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/Courses.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="S_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="S_Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="S_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="S_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">My Courses</div>
+
+  <div class="Courses">
+
+    <!-- JOIN COURSE FORM -->
+    <div class="Add_Courses">
+      <h2>Join a Course</h2>
+      <div id="joinError" class="form-error"></div>
+      <p>
+        <label for="courseCodeStudent">Course Code:</label>
+        <input id="courseCodeStudent" type="text" placeholder="COMP 232" required />
+      </p>
+      <p>
+        <label for="sectionStudent">Section:</label>
+        <input id="sectionStudent" type="text" placeholder="NN" required />
+      </p>
+      <p>
+        <label for="termStudent">Term:</label>
+        <input id="termStudent" type="text" placeholder="Winter 2026" required />
+      </p>
+      <button id="joinBtn" class="user-choice2 primary" type="button">Join</button>
+    </div>
+
+    <!-- COURSE GRID -->
+    <div class="Course_Grid" id="courseGrid">
+      <div class="empty-state">
+        <span class="spinner"></span> Loading courses…
+      </div>
+    </div>
+
+  </div>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    let currentCourses = [];
+
+    async function init() {
+      await guardPage('student', 'S_Login.html');
+      setupLogout();
+      await loadCourses();
+    }
+
+    async function loadCourses() {
+      const grid = document.getElementById('courseGrid');
+      try {
+        currentCourses = await API.get('/api/student/courses');
+        renderCourses(currentCourses);
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state" style="color:#ff8080">${e.message}</div>`;
+      }
+    }
+
+    function renderCourses(courses) {
+      const grid = document.getElementById('courseGrid');
+      if (!courses.length) {
+        grid.innerHTML = '<div class="empty-state">No courses yet. Join a course using the form.</div>';
+        return;
+      }
+      grid.innerHTML = courses.map(c => {
+        const avg = c.stats.avg !== null ? `${c.stats.avg}%` : '—';
+        const status = c.active ? 'Active' : 'Inactive';
+        const statusCls = c.active ? 'active' : 'inactive';
+        const upcoming = c.upcoming && c.upcoming.length
+          ? c.upcoming.map(u => `<li>${u.name} — Due: ${u.due_date || '—'}</li>`).join('')
+          : '<li>No upcoming assessments.</li>';
+
+        return `
+        <div class="Course_Box" data-id="${c.id}">
+          <header>
+            <h2>${escHtml(c.course_code)} — ${escHtml(c.section)}</h2>
+            <p>${escHtml(c.course_name)}</p>
+            <span class="course-status ${statusCls}">${status}</span>
+          </header>
+
+          <p><strong>Instructor:</strong> ${escHtml(c.teacher_name)}</p>
+          <p><strong>Term:</strong> ${escHtml(c.term)}</p>
+
+          <h3>Overview</h3>
+          <ul>
+            <li><strong>Current Average:</strong> ${avg}</li>
+            <li><strong>Assessments:</strong> ${c.stats.done} / ${c.stats.total} done</li>
+          </ul>
+
+          <h3>Progress</h3>
+          <progress value="${c.stats.progress}" max="100">${c.stats.progress}%</progress>
+          <p class="progress-label">${c.stats.progress}% complete</p>
+
+          <h3>Upcoming</h3>
+          <ul>${upcoming}</ul>
+
+          <footer class="button-container">
+            <button class="user-choice2"
+              onclick="goToAssessments(${c.id})">View Assessments</button>
+            <button class="user-choice2"
+              onclick="leaveCourse(${c.id}, '${escHtml(c.course_code)}')">Leave</button>
+          </footer>
+        </div>`;
+      }).join('');
+    }
+
+    function goToAssessments(courseId) {
+      sessionStorage.setItem('selectedCourseId', courseId);
+      window.location.href = 'S_Assessments.html';
+    }
+
+    async function leaveCourse(courseId, code) {
+      if (!confirm(`Leave ${code}? Your grade data for this course will be removed.`)) return;
+      try {
+        await API.delete(`/api/student/courses/${courseId}`);
+        showToast(`Left ${code}`);
+        await loadCourses();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    // handle the join button click
+    document.getElementById('joinBtn').addEventListener('click', async () => {
+      const code  = document.getElementById('courseCodeStudent').value.trim();
+      const sec   = document.getElementById('sectionStudent').value.trim();
+      const term  = document.getElementById('termStudent').value.trim();
+      const errEl = document.getElementById('joinError');
+
+      errEl.className = 'form-error';
+      if (!code || !sec || !term) {
+        errEl.textContent = 'All fields are required.';
+        errEl.classList.add('visible');
+        return;
+      }
+
+      const btn = document.getElementById('joinBtn');
+      btn.disabled = true;
+      btn.textContent = 'Joining…';
+
+      try {
+        await API.post('/api/student/courses/join', {
+          course_code: code, section: sec, term
+        });
+        document.getElementById('courseCodeStudent').value = '';
+        document.getElementById('sectionStudent').value = '';
+        document.getElementById('termStudent').value = '';
+        showToast(`Joined ${code}!`);
+        await loadCourses();
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Join';
+      }
+    });
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

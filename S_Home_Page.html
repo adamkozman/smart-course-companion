@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home Page Student</title>
+    <link rel="stylesheet" href="Styles/HPS_Header.css">
+    <link rel="stylesheet" href="Styles/UserInfo.css">
+    <link rel="stylesheet" href="Styles/Background.css">
+  </head>
+  <body>
+    <div class="Header">
+
+        <div class="leftside">
+          <div class="Title">Smart Course Companion</div>
+        </div>
+
+        <div class="rightside">
+          <input type="checkbox" id="toggle" class="mini-menu">
+          <label for="toggle" class="Menu-button">
+              <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+              <div class="tooltip">Menu</div> 
+          </label>
+          <div class="box-to-hide">
+            <a href="S_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+            <a href="S_Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+            <a href="S_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+            <a href="S_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+            <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+          </div>
+        </div>
+    </div>   
+    
+    <div class="PageTitle">Home</div>
+
+    <div class="Info">
+        <div class="info-header">
+          <h2>Student Account Information</h2>
+          <p>View your account details below and update them when needed.</p>
+        </div>
+
+        <div id="profileMessage" class="profile-message"></div>
+
+        <form id="studentProfileForm" class="profile-form">
+          <div class="profile-row">
+            <label for="studentName">Student Name:</label>
+            <input type="text" id="studentName" name="name" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="studentNumber">Student Id:</label>
+            <input type="text" id="studentNumber" name="student_number" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="studentEmail">Email:</label>
+            <input type="email" id="studentEmail" name="email" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="studentPhone">Phone Number:</label>
+            <input type="text" id="studentPhone" name="phone" readonly>
+          </div>
+
+          <div class="profile-row">
+            <label for="studentProgram">Program:</label>
+            <input type="text" id="studentProgram" name="program" readonly>
+          </div>
+
+          <div class="button-row">
+            <button type="button" id="editStudentBtn" class="profile-btn">Edit Information</button>
+            <button type="submit" id="saveStudentBtn" class="profile-btn save-btn hidden">Save Changes</button>
+            <button type="button" id="cancelStudentBtn" class="profile-btn cancel-btn hidden">Cancel</button>
+          </div>
+        </form>
+    </div>
+
+
+    <div class="background"></div>
+    <script src="public/js/api.js"></script>
+    <script>
+      var originalProfile = null;
+      var studentFields = ['studentName', 'studentNumber', 'studentEmail', 'studentPhone', 'studentProgram'];
+
+      async function initStudentHomePage() {
+        var auth = await guardPage('student', 'S_Login.html');
+        if (!auth) {
+          return;
+        }
+
+        setupLogout();
+        await loadStudentProfile();
+        setupStudentProfileEvents();
+      }
+
+      async function loadStudentProfile() {
+        try {
+          var profile = await API.get('/api/account/profile');
+          originalProfile = profile;
+          fillStudentForm(profile);
+        } catch (error) {
+          showProfileMessage(error.message, true);
+        }
+      }
+
+      function fillStudentForm(profile) {
+        document.getElementById('studentName').value = profile.name || '';
+        document.getElementById('studentNumber').value = profile.student_number || '';
+        document.getElementById('studentEmail').value = profile.email || '';
+        document.getElementById('studentPhone').value = profile.phone || '';
+        document.getElementById('studentProgram').value = profile.program || '';
+      }
+
+      function setStudentEditMode(isEditing) {
+        for (var i = 0; i < studentFields.length; i++) {
+          document.getElementById(studentFields[i]).readOnly = !isEditing;
+        }
+
+        document.getElementById('editStudentBtn').classList.toggle('hidden', isEditing);
+        document.getElementById('saveStudentBtn').classList.toggle('hidden', !isEditing);
+        document.getElementById('cancelStudentBtn').classList.toggle('hidden', !isEditing);
+      }
+
+      function showProfileMessage(message, isError) {
+        var messageBox = document.getElementById('profileMessage');
+        messageBox.textContent = message || '';
+        messageBox.className = isError ? 'profile-message error visible' : 'profile-message visible';
+      }
+
+      function clearProfileMessage() {
+        var messageBox = document.getElementById('profileMessage');
+        messageBox.textContent = '';
+        messageBox.className = 'profile-message';
+      }
+
+      function setupStudentProfileEvents() {
+        document.getElementById('editStudentBtn').addEventListener('click', function() {
+          clearProfileMessage();
+          setStudentEditMode(true);
+        });
+
+        document.getElementById('cancelStudentBtn').addEventListener('click', function() {
+          clearProfileMessage();
+          if (originalProfile) {
+            fillStudentForm(originalProfile);
+          }
+          setStudentEditMode(false);
+        });
+
+        document.getElementById('studentProfileForm').addEventListener('submit', async function(event) {
+          event.preventDefault();
+          clearProfileMessage();
+
+          var saveButton = document.getElementById('saveStudentBtn');
+          saveButton.disabled = true;
+          saveButton.textContent = 'Saving...';
+
+          try {
+            await API.put('/api/account/profile', {
+              name: document.getElementById('studentName').value,
+              student_number: document.getElementById('studentNumber').value,
+              email: document.getElementById('studentEmail').value,
+              phone: document.getElementById('studentPhone').value,
+              program: document.getElementById('studentProgram').value
+            });
+
+            await loadStudentProfile();
+            setStudentEditMode(false);
+            showProfileMessage('Your account information was updated successfully.', false);
+          } catch (error) {
+            showProfileMessage(error.message, true);
+          } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Changes';
+          }
+        });
+      }
+
+      initStudentHomePage();
+    </script>
+  </body>
+</html>

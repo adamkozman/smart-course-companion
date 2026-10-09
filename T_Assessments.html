@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Manage Assessments — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/T_Assessments.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="T_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="T_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="T_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">Assessments</div>
+
+  <div class="assessments-page">
+
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <a href="Assessments_Calendar.html">
+        <button class="user-choice2" type="button">View Calendar</button>
+      </a>
+    </div>
+    <div class="Container">
+
+      <!-- BOX 1: Course Selector + Create Form -->
+      <div class="S_Box1">
+
+        <div class="course-selector">
+          <label for="teacherCourseSelect">Select Course</label>
+          <select id="teacherCourseSelect">
+            <option value="">— Select a course —</option>
+          </select>
+        </div>
+
+        <div id="weightIndicator" class="weight-indicator" style="display:none">
+          Weight used: <strong id="usedWeight">0</strong>% / 100%
+        </div>
+
+        <h2>Create an Assessment</h2>
+        <div id="createError" class="form-error"></div>
+
+        <label>Assessment Name
+          <input type="text" id="assessName" placeholder="Assignment 1" />
+        </label>
+
+        <label>Type
+          <select id="assessType">
+            <option>Assignment</option>
+            <option>Lab</option>
+            <option>Quiz</option>
+            <option>Exam</option>
+          </select>
+        </label>
+
+        <label>Weight (%)
+          <input type="number" id="assessWeight" placeholder="15" min="1" max="100" step="0.5" />
+        </label>
+
+        <label>Total Marks
+          <input type="number" id="assessTotal" placeholder="100" min="1" />
+        </label>
+
+        <label>Due Date
+          <input type="date" id="assessDue" />
+        </label>
+
+        <button id="createAssessBtn" class="user-choice2 primary" type="button">+ Create</button>
+      </div>
+
+      <!-- BOX 2: Assessment List -->
+      <div class="Box3">
+        <h2>Assessment List</h2>
+        <div id="assessmentList">
+          <p class="empty-state">Select a course to see its assessments.</p>
+        </div>
+      </div>
+
+      <!-- BOX 3: Student Stats (anonymized) -->
+      <div class="stats-box">
+        <h2>Course Stats</h2>
+        <div id="statsContent">
+          <p class="empty-state">Select a course to view anonymized statistics.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    let teacherCourses  = [];
+    let currentAssessments = [];
+
+    async function init() {
+      await guardPage('teacher', 'T_Login.html');
+      setupLogout();
+      await loadCourses();
+      setupCourseSelect();
+      setupCreateForm();
+    }
+
+    async function loadCourses() {
+      try {
+        teacherCourses = await API.get('/api/teacher/courses');
+        const sel = document.getElementById('teacherCourseSelect');
+        sel.innerHTML = '<option value="">— Select a course —</option>';
+        teacherCourses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.course_code} — ${c.section} (${c.term})`;
+          sel.appendChild(opt);
+        });
+
+        // if we came from T_Courses with a course already picked, select it automatically
+        const preSelected = sessionStorage.getItem('teacherSelectedCourseId');
+        if (preSelected) {
+          sel.value = preSelected;
+          sessionStorage.removeItem('teacherSelectedCourseId');
+          await onCourseChange();
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function setupCourseSelect() {
+      document.getElementById('teacherCourseSelect').addEventListener('change', onCourseChange);
+    }
+
+    async function onCourseChange() {
+      const courseId = document.getElementById('teacherCourseSelect').value;
+      if (!courseId) {
+        document.getElementById('assessmentList').innerHTML =
+          '<p class="empty-state">Select a course to see its assessments.</p>';
+        document.getElementById('statsContent').innerHTML =
+          '<p class="empty-state">Select a course to view anonymized statistics.</p>';
+        document.getElementById('weightIndicator').style.display = 'none';
+        currentAssessments = [];
+        return;
+      }
+
+      document.getElementById('assessmentList').innerHTML =
+        '<p class="empty-state"><span class="spinner"></span> Loading…</p>';
+      document.getElementById('statsContent').innerHTML =
+        '<p class="empty-state"><span class="spinner"></span> Loading…</p>';
+
+      try {
+        [currentAssessments] = await Promise.all([
+          API.get(`/api/teacher/assessments/${courseId}`)
+        ]);
+        renderAssessments(currentAssessments);
+        await loadStats(courseId);
+        updateWeightIndicator();
+      } catch (e) {
+        document.getElementById('assessmentList').innerHTML =
+          `<p class="empty-state" style="color:#ff8080">${e.message}</p>`;
+      }
+    }
+
+    function updateWeightIndicator() {
+      const total = currentAssessments.reduce((s, a) => s + (a.weight || 0), 0);
+      const el = document.getElementById('weightIndicator');
+      const used = document.getElementById('usedWeight');
+      el.style.display = '';
+      used.textContent = Math.round(total * 10) / 10;
+      el.className = 'weight-indicator' + (total > 100 ? ' over' : '');
+    }
+
+    function renderAssessments(list) {
+      const container = document.getElementById('assessmentList');
+      if (!list.length) {
+        container.innerHTML = '<p class="empty-state">No assessments yet. Create one using the form.</p>';
+        return;
+      }
+      container.innerHTML = list.map(a => `
+        <div class="assessment-card" id="acard-${a.id}">
+          <h3>${escHtml(a.name)}</h3>
+          <p>Type: ${escHtml(a.type)} &bull; Weight: ${a.weight}% &bull; Total: ${a.total_marks} marks</p>
+          <p>Due: ${a.due_date || '—'}</p>
+          <div class="card-actions">
+            <button class="user-choice2 danger"
+              onclick="deleteAssessment(${a.id}, '${escHtml(a.name)}')">Delete</button>
+          </div>
+        </div>`).join('');
+    }
+
+    async function loadStats(courseId) {
+      try {
+        const stats = await API.get(`/api/teacher/courses/${courseId}/stats`);
+        renderStats(stats);
+      } catch (e) {
+        document.getElementById('statsContent').innerHTML =
+          `<p class="empty-state" style="color:#ff8080">${e.message}</p>`;
+      }
+    }
+
+    function renderStats(stats) {
+      const container = document.getElementById('statsContent');
+      if (!stats.assessments.length) {
+        container.innerHTML = `<p class="empty-state">No assessments yet. Create assessments to see statistics.</p>`;
+        return;
+      }
+      container.innerHTML = `
+        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:12px">
+          <strong style="color:#fff">${stats.enrolled}</strong> student${stats.enrolled !== 1 ? 's' : ''} enrolled
+        </p>
+        ${stats.assessments.map(a => `
+        <div class="stat-row">
+          <span><strong>${escHtml(a.name)}</strong> (${escHtml(a.type)}, ${a.weight}%)</span><br>
+          <span>${a.completed_count} / ${stats.enrolled} completed (${a.completion_pct}%)</span>
+          <div class="stat-bar">
+            <div class="stat-bar-fill" style="width:${a.completion_pct}%"></div>
+          </div>
+        </div>`).join('')}`;
+    }
+
+    function setupCreateForm() {
+      document.getElementById('createAssessBtn').addEventListener('click', createAssessment);
+    }
+
+    async function createAssessment() {
+      const courseId = document.getElementById('teacherCourseSelect').value;
+      const name     = document.getElementById('assessName').value.trim();
+      const type     = document.getElementById('assessType').value;
+      const weight   = document.getElementById('assessWeight').value.trim();
+      const total    = document.getElementById('assessTotal').value.trim();
+      const due      = document.getElementById('assessDue').value;
+      const errEl    = document.getElementById('createError');
+
+      errEl.className = 'form-error';
+
+      if (!courseId) {
+        errEl.textContent = 'Please select a course first.';
+        errEl.classList.add('visible'); return;
+      }
+      if (!name) {
+        errEl.textContent = 'Assessment name is required.';
+        errEl.classList.add('visible'); return;
+      }
+      if (!weight || isNaN(parseFloat(weight)) || parseFloat(weight) <= 0 || parseFloat(weight) > 100) {
+        errEl.textContent = 'Weight must be between 1 and 100.';
+        errEl.classList.add('visible'); return;
+      }
+      if (!total || isNaN(parseFloat(total)) || parseFloat(total) <= 0) {
+        errEl.textContent = 'Total marks must be a positive number.';
+        errEl.classList.add('visible'); return;
+      }
+
+      const btn = document.getElementById('createAssessBtn');
+      btn.disabled = true; btn.textContent = 'Creating…';
+
+      try {
+        await API.post('/api/teacher/assessments', {
+          course_id: courseId, name, type,
+          weight: parseFloat(weight),
+          total_marks: parseFloat(total),
+          due_date: due || null
+        });
+
+        // clear the form inputs after creating
+        ['assessName','assessWeight','assessTotal','assessDue']
+          .forEach(id => document.getElementById(id).value = '');
+
+        showToast(`Assessment "${name}" created!`);
+        currentAssessments = await API.get(`/api/teacher/assessments/${courseId}`);
+        renderAssessments(currentAssessments);
+        updateWeightIndicator();
+        await loadStats(courseId);
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.classList.add('visible');
+      } finally {
+        btn.disabled = false; btn.textContent = '+ Create';
+      }
+    }
+
+    async function deleteAssessment(assessmentId, name) {
+      if (!confirm(`Delete assessment "${name}"? This cannot be undone.`)) return;
+      try {
+        await API.delete(`/api/teacher/assessments/${assessmentId}`);
+        showToast(`Deleted "${name}".`);
+        const courseId = document.getElementById('teacherCourseSelect').value;
+        currentAssessments = await API.get(`/api/teacher/assessments/${courseId}`);
+        renderAssessments(currentAssessments);
+        updateWeightIndicator();
+        await loadStats(courseId);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

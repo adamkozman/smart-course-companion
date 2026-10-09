@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Assessments — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/S_Assessments.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="S_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="S_Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="S_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="S_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">Assessments</div>
+
+  <div class="assessments-page">
+
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <a href="Assessments_Calendar.html">
+        <button class="user-choice2" type="button">View Calendar</button>
+      </a>
+    </div>
+
+    <div class="Grid">
+
+      <!-- BOX 1: Filters -->
+      <div class="Box1">
+        <label>
+          Course
+          <select id="courseSelect">
+            <option value="">— Select a course —</option>
+          </select>
+        </label>
+        <label>
+          Status Filter
+          <select id="statusFilter">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </label>
+        <label>
+          Search
+          <input type="text" id="searchInput" placeholder="Search by name…" />
+        </label>
+      </div>
+
+      <!-- BOX 2: Course Summary -->
+      <div class="Box2" id="summaryBox">
+        <h2>Course Summary</h2>
+        <p id="summaryEmpty" style="color:rgba(255,255,255,0.55)">
+          Select a course to see its summary.
+        </p>
+        <div id="summaryContent" style="display:none">
+          <p><strong>Course:</strong> <span id="sumCourse">—</span></p>
+          <p><strong>Current Average:</strong> <span id="sumAvg">—</span></p>
+          <p><strong>Completed:</strong> <span id="sumDone">—</span></p>
+          <p>Progress: <span id="sumPct">0</span>%</p>
+          <progress id="sumProgress" value="0" max="100">0%</progress>
+
+          <h2 style="margin-top:16px">Upcoming</h2>
+          <ul id="upcomingList">
+            <li style="color:rgba(255,255,255,0.55)">None</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- BOX 3: Assessment List (read-only) -->
+      <div class="Box3">
+        <h2>Assessment List</h2>
+        <div id="assessmentList">
+          <p class="empty-state">Select a course to see its assessments.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    let enrolledCourses = [];
+    let allAssessments  = [];
+
+    async function init() {
+      await guardPage('student', 'S_Login.html');
+      setupLogout();
+      await loadCourses();
+      setupFilters();
+    }
+
+    async function loadCourses() {
+      try {
+        enrolledCourses = await API.get('/api/student/courses');
+        const sel = document.getElementById('courseSelect');
+        sel.innerHTML = '<option value="">— Select a course —</option>';
+        enrolledCourses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.course_code} — ${c.section} (${c.term})`;
+          sel.appendChild(opt);
+        });
+
+        const preSelected = sessionStorage.getItem('selectedCourseId');
+        if (preSelected) {
+          sel.value = preSelected;
+          sessionStorage.removeItem('selectedCourseId');
+          await onCourseChange();
+        }
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    function setupFilters() {
+      document.getElementById('courseSelect').addEventListener('change', onCourseChange);
+      document.getElementById('statusFilter').addEventListener('change', applyFilters);
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
+    }
+
+    async function onCourseChange() {
+      const courseId = document.getElementById('courseSelect').value;
+      if (!courseId) {
+        document.getElementById('summaryContent').style.display = 'none';
+        document.getElementById('summaryEmpty').style.display   = '';
+        document.getElementById('assessmentList').innerHTML =
+          '<p class="empty-state">Select a course to see its assessments.</p>';
+        allAssessments = [];
+        return;
+      }
+
+      document.getElementById('assessmentList').innerHTML =
+        '<p class="empty-state"><span class="spinner"></span> Loading…</p>';
+
+      try {
+        allAssessments = await API.get(`/api/student/assessments/${courseId}`);
+        updateSummary(courseId);
+        applyFilters();
+      } catch (e) {
+        document.getElementById('assessmentList').innerHTML =
+          `<p class="empty-state" style="color:#ff8080">${e.message}</p>`;
+      }
+    }
+
+    function updateSummary(courseId) {
+      const course = enrolledCourses.find(c => c.id == courseId);
+      if (!course) return;
+
+      document.getElementById('summaryEmpty').style.display   = 'none';
+      document.getElementById('summaryContent').style.display = '';
+      document.getElementById('sumCourse').textContent =
+        `${course.course_code} — ${course.section}`;
+
+      const completed = allAssessments.filter(a => a.student_status === 'Completed');
+      const graded    = allAssessments.filter(a => a.earned_marks !== null && a.total_marks);
+      const avg = graded.length
+        ? Math.round(graded.reduce((s,a) => s + (a.earned_marks/a.total_marks*100), 0) / graded.length)
+        : null;
+
+      document.getElementById('sumAvg').textContent  = avg !== null ? `${avg}%` : '—';
+      document.getElementById('sumDone').textContent =
+        `${completed.length} / ${allAssessments.length}`;
+
+      const pct = allAssessments.length
+        ? Math.round(completed.length / allAssessments.length * 100) : 0;
+      document.getElementById('sumPct').textContent      = pct;
+      document.getElementById('sumProgress').value       = pct;
+
+      const upcoming = allAssessments
+        .filter(a => a.student_status !== 'Completed' && a.due_date)
+        .sort((a,b) => new Date(a.due_date) - new Date(b.due_date))
+        .slice(0, 5);
+
+      document.getElementById('upcomingList').innerHTML = upcoming.length
+        ? upcoming.map(u => `<li>${escHtml(u.name)} — Due: ${escHtml(u.due_date)}</li>`).join('')
+        : '<li style="color:rgba(255,255,255,0.55)">No upcoming assessments.</li>';
+    }
+
+    function applyFilters() {
+      const statusF = document.getElementById('statusFilter').value;
+      const search  = document.getElementById('searchInput').value.toLowerCase();
+
+      const filtered = allAssessments.filter(a => {
+        const matchStatus = statusF === 'All' || (a.student_status || 'Pending') === statusF;
+        const matchSearch = !search || a.name.toLowerCase().includes(search);
+        return matchStatus && matchSearch;
+      });
+
+      renderAssessments(filtered);
+    }
+
+    function renderAssessments(list) {
+      const container = document.getElementById('assessmentList');
+      if (!list.length) {
+        container.innerHTML = '<p class="empty-state">No assessments match your filter.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(a => {
+        const status    = a.student_status || 'Pending';
+        const statusCls = status === 'Completed' ? 'completed' : 'pending';
+        const earned    = (a.earned_marks !== null && a.earned_marks !== undefined)
+          ? a.earned_marks : null;
+        const pct = earned !== null && a.total_marks
+          ? Math.round(earned / a.total_marks * 100) : null;
+
+        // Grade display — read-only
+        const gradeDisplay = earned !== null
+          ? `<p>Grade: <strong>${earned} / ${a.total_marks} (${pct}%)</strong></p>`
+          : `<p style="color:rgba(255,255,255,0.45);font-size:0.82rem">Not graded yet by teacher.</p>`;
+
+        return `
+        <div class="assessment-card">
+          <h3>${escHtml(a.name)}</h3>
+          <p>Type: ${escHtml(a.type)} &bull; Weight: ${a.weight}% &bull; Due: ${a.due_date || '—'}</p>
+          <p>Total Marks: ${a.total_marks}</p>
+          ${gradeDisplay}
+          <span class="status-badge ${statusCls}">${status}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

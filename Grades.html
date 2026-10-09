@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Manage Grades - Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/Grades.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="T_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="T_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="T_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">Grades</div>
+
+  <main class="grades-page">
+    <section class="grades-panel">
+
+      <div class="panel-header">
+        <div>
+          <h1 id="courseTitle">Select a course to view grades</h1>
+          <p id="courseSubtitle"></p>
+        </div>
+        <div class="controls">
+          <label class="course-picker" for="courseSelect">
+            <span>Select course</span>
+            <select id="courseSelect">
+              <option value="">— Select a course —</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="emptyState" class="empty-state">
+        Select a course above to view its enrolled students and grades.
+      </div>
+
+      <div class="table-shell" id="tableShell" style="display:none">
+        <table id="studentTable">
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="stats-grid" id="statsGrid" style="display:none">
+        <div class="stat-card">
+          <p class="stat-label">Enrolled Students</p>
+          <p class="stat-value" id="statEnrolled">—</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Class Average</p>
+          <p class="stat-value" id="statAvg">—</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Highest Overall</p>
+          <p class="stat-value" id="statHigh">—</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Lowest Overall</p>
+          <p class="stat-value" id="statLow">—</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Fail Count</p>
+          <p class="stat-value" id="statFail">—</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Pass Rate</p>
+          <p class="stat-value" id="statPass">—</p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    let currentData = null;
+
+    async function init() {
+      await guardPage('teacher', 'T_Login.html');
+      setupLogout();
+      await loadCourses();
+      document.getElementById('courseSelect').addEventListener('change', onCourseChange);
+    }
+
+    async function loadCourses() {
+      try {
+        const courses = await API.get('/api/teacher/courses');
+        const sel = document.getElementById('courseSelect');
+        sel.innerHTML = '<option value="">— Select a course —</option>';
+        courses.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = `${c.course_code} — ${c.section} (${c.term})`;
+          sel.appendChild(opt);
+        });
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function onCourseChange() {
+      const courseId = document.getElementById('courseSelect').value;
+      if (!courseId) {
+        document.getElementById('tableShell').style.display = 'none';
+        document.getElementById('statsGrid').style.display  = 'none';
+        document.getElementById('emptyState').style.display = '';
+        document.getElementById('emptyState').textContent   = 'Select a course above to view its enrolled students and grades.';
+        document.getElementById('courseTitle').textContent  = 'Select a course to view grades';
+        document.getElementById('courseSubtitle').textContent = '';
+        return;
+      }
+
+      document.getElementById('emptyState').innerHTML = '<span class="spinner"></span> Loading grades…';
+      document.getElementById('tableShell').style.display = 'none';
+      document.getElementById('statsGrid').style.display  = 'none';
+
+      try {
+        currentData = await API.get(`/api/teacher/grades/${courseId}`);
+        renderGrades(currentData);
+      } catch (e) {
+        document.getElementById('emptyState').textContent = e.message;
+      }
+    }
+
+    function renderGrades(data) {
+      const { assessments, students } = data;
+
+      document.getElementById('courseTitle').textContent =
+        `${data.course_code} — ${data.course_name}`;
+      document.getElementById('courseSubtitle').textContent =
+        `Section ${data.section} • ${data.term}`;
+
+      // Build header
+      const head = document.getElementById('tableHead');
+      head.innerHTML = '<th>Student ID</th><th>Full Name</th>';
+      assessments.forEach(a => {
+        head.innerHTML += `<th>${escHtml(a.name)}<br>
+          <span style="font-weight:400;font-size:0.75rem;opacity:0.7">/ ${a.total_marks} pts</span></th>`;
+      });
+      head.innerHTML += '<th>Overall</th><th>Letter</th><th>Save</th>';
+
+      // Build body
+      const body = document.getElementById('tableBody');
+      body.innerHTML = '';
+
+      if (!students.length) {
+        body.innerHTML = `<tr><td colspan="${assessments.length + 5}" class="empty-cell">
+          No students enrolled yet.</td></tr>`;
+      } else {
+        students.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.dataset.studentId = s.student_id;
+
+          // Student ID
+          const tdId = document.createElement('td');
+          tdId.textContent = s.student_number || `#${s.student_id}`;
+          tr.appendChild(tdId);
+
+          // Name
+          const tdName = document.createElement('td');
+          tdName.textContent = s.name;
+          tr.appendChild(tdName);
+
+          // Grade inputs
+          assessments.forEach(a => {
+            const td  = document.createElement('td');
+            const g   = s.grades[a.id];
+            const val = (g && g.earned_marks !== null && g.earned_marks !== undefined)
+              ? g.earned_marks : '';
+            td.innerHTML = `
+              <input class="grade-input"
+                type="number" min="0" max="${a.total_marks}" step="0.5"
+                placeholder="—" value="${val}"
+                data-assessment-id="${a.id}"
+                data-total="${a.total_marks}"
+                oninput="refreshRowOverall(this)" />`;
+            tr.appendChild(td);
+          });
+
+          // Overall
+          const tdOverall = document.createElement('td');
+          tdOverall.className = 'overall-cell';
+          tdOverall.textContent = s.overall !== null ? `${s.overall}%` : '—';
+          tr.appendChild(tdOverall);
+
+          // Letter
+          const tdLetter = document.createElement('td');
+          tdLetter.className = 'letter-cell';
+          tdLetter.textContent = s.letter || '—';
+          tr.appendChild(tdLetter);
+
+          // Save button
+          const tdSave = document.createElement('td');
+          tdSave.innerHTML = `
+            <button class="table-action-button"
+              onclick="saveRow(this, ${s.student_id})">Save</button>`;
+          tr.appendChild(tdSave);
+
+          body.appendChild(tr);
+        });
+      }
+
+      document.getElementById('tableShell').style.display = '';
+      document.getElementById('emptyState').style.display = 'none';
+      renderStats(students);
+    }
+
+    // Recompute overall + letter live as teacher types
+    function refreshRowOverall(inputEl) {
+      const tr     = inputEl.closest('tr');
+      const inputs = tr.querySelectorAll('.grade-input');
+      let weightedSum = 0, totalWeight = 0, hasAny = false;
+
+      inputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (val === '' || isNaN(parseFloat(val))) return;
+        const a = currentData.assessments.find(x => x.id == inp.dataset.assessmentId);
+        if (!a) return;
+        weightedSum += (parseFloat(val) / parseFloat(inp.dataset.total) * 100) * a.weight;
+        totalWeight += a.weight;
+        hasAny = true;
+      });
+
+      const overallCell = tr.querySelector('.overall-cell');
+      const letterCell  = tr.querySelector('.letter-cell');
+
+      if (!hasAny || totalWeight === 0) {
+        overallCell.textContent = '—';
+        letterCell.textContent  = '—';
+        return;
+      }
+
+      const overall = Math.round(weightedSum / totalWeight * 10) / 10;
+      overallCell.textContent = `${overall}%`;
+      letterCell.textContent  = letterGrade(overall);
+    }
+
+    async function saveRow(btn, studentId) {
+      const tr       = btn.closest('tr');
+      const inputs   = tr.querySelectorAll('.grade-input');
+      const courseId = document.getElementById('courseSelect').value;
+
+      // Validate first
+      for (const inp of inputs) {
+        const val = inp.value.trim();
+        if (val === '') continue;
+        const earned = parseFloat(val);
+        const total  = parseFloat(inp.dataset.total);
+        if (isNaN(earned) || earned < 0) {
+          showToast('Grades must be non-negative numbers.', 'error'); return;
+        }
+        if (earned > total) {
+          showToast(`Grade exceeds total marks (${total}).`, 'error'); return;
+        }
+      }
+
+      btn.disabled    = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        await Promise.all(Array.from(inputs).map(inp =>
+          API.put('/api/teacher/grades', {
+            student_id:    studentId,
+            assessment_id: parseInt(inp.dataset.assessmentId),
+            earned_marks:  inp.value.trim() === '' ? null : parseFloat(inp.value)
+          })
+        ));
+
+        showToast('Grades saved!');
+        // Reload fresh data so overall + stats recompute server-side
+        currentData = await API.get(`/api/teacher/grades/${courseId}`);
+        renderGrades(currentData);
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled    = false;
+        btn.textContent = 'Save';
+      }
+    }
+
+    function renderStats(students) {
+      const overalls = students.map(s => s.overall).filter(v => v !== null && v !== undefined);
+      document.getElementById('statEnrolled').textContent = students.length;
+      document.getElementById('statAvg').textContent =
+        overalls.length ? (overalls.reduce((a,b)=>a+b,0)/overalls.length).toFixed(1)+'%' : '—';
+      document.getElementById('statHigh').textContent =
+        overalls.length ? Math.max(...overalls)+'%' : '—';
+      document.getElementById('statLow').textContent =
+        overalls.length ? Math.min(...overalls)+'%' : '—';
+      document.getElementById('statFail').textContent = overalls.filter(v=>v<50).length;
+      document.getElementById('statPass').textContent =
+        overalls.length
+          ? Math.round(overalls.filter(v=>v>=50).length/overalls.length*100)+'%' : '—';
+      document.getElementById('statsGrid').style.display = '';
+    }
+
+    function letterGrade(pct) {
+      if (pct === null || pct === undefined) return '—';
+      if (pct >= 90) return 'A+';
+      if (pct >= 85) return 'A';
+      if (pct >= 80) return 'A-';
+      if (pct >= 77) return 'B+';
+      if (pct >= 73) return 'B';
+      if (pct >= 70) return 'B-';
+      if (pct >= 67) return 'C+';
+      if (pct >= 63) return 'C';
+      if (pct >= 60) return 'C-';
+      if (pct >= 57) return 'D+';
+      if (pct >= 50) return 'D';
+      return 'F';
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

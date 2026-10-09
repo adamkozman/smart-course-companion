@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Home Page Teacher</title>
+    <link rel="stylesheet" href="Styles/HPS_Header.css">
+    <link rel="stylesheet" href="Styles/UserInfo.css">
+    <link rel="stylesheet" href="Styles/Background.css">
+  </head>
+  <body>
+    <div class="Header">
+
+        <div class="leftside">
+          <div class="Title">Smart Course Companion</div>
+        </div>
+
+        <div class="rightside">
+          <input type="checkbox" id="toggle" class="mini-menu">
+          <label for="toggle" class="Menu-button">
+              <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+              <div class="tooltip">Menu</div> 
+          </label>
+          <div class="box-to-hide">
+            <a href="T_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+            <a href="Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+            <a href="T_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+            <a href="T_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+            <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+          </div>
+        </div>
+    </div>   
+    
+    <div class="PageTitle">Home</div>
+
+    <div class="Info">
+        <div class="info-header">
+          <h2>Teacher Account Information</h2>
+          <p>Keep your profile up to date so your course information stays accurate.</p>
+        </div>
+
+        <div id="profileMessage" class="profile-message"></div>
+
+        <form id="teacherProfileForm" class="profile-form">
+          <div class="profile-row">
+            <label for="teacherName">Teacher Name:</label>
+            <input type="text" id="teacherName" name="name" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="teacherNumber">Teacher Id:</label>
+            <input type="text" id="teacherNumber" name="teacher_number" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="teacherEmail">Email:</label>
+            <input type="email" id="teacherEmail" name="email" readonly required>
+          </div>
+
+          <div class="profile-row">
+            <label for="teacherPhone">Phone Number:</label>
+            <input type="text" id="teacherPhone" name="phone" readonly>
+          </div>
+
+          <div class="profile-row">
+            <label for="teacherPhd">PHD:</label>
+            <input type="text" id="teacherPhd" name="phd" readonly>
+          </div>
+
+          <div class="button-row">
+            <button type="button" id="editTeacherBtn" class="profile-btn">Edit Information</button>
+            <button type="submit" id="saveTeacherBtn" class="profile-btn save-btn hidden">Save Changes</button>
+            <button type="button" id="cancelTeacherBtn" class="profile-btn cancel-btn hidden">Cancel</button>
+          </div>
+        </form>
+    </div>
+
+
+    <div class="background"></div>
+    <script src="public/js/api.js"></script>
+    <script>
+      var originalProfile = null;
+      var teacherFields = ['teacherName', 'teacherNumber', 'teacherEmail', 'teacherPhone', 'teacherPhd'];
+
+      async function initTeacherHomePage() {
+        var auth = await guardPage('teacher', 'T_Login.html');
+        if (!auth) {
+          return;
+        }
+
+        setupLogout();
+        await loadTeacherProfile();
+        setupTeacherProfileEvents();
+      }
+
+      async function loadTeacherProfile() {
+        try {
+          var profile = await API.get('/api/account/profile');
+          originalProfile = profile;
+          fillTeacherForm(profile);
+        } catch (error) {
+          showProfileMessage(error.message, true);
+        }
+      }
+
+      function fillTeacherForm(profile) {
+        document.getElementById('teacherName').value = profile.name || '';
+        document.getElementById('teacherNumber').value = profile.teacher_number || '';
+        document.getElementById('teacherEmail').value = profile.email || '';
+        document.getElementById('teacherPhone').value = profile.phone || '';
+        document.getElementById('teacherPhd').value = profile.phd || '';
+      }
+
+      function setTeacherEditMode(isEditing) {
+        for (var i = 0; i < teacherFields.length; i++) {
+          document.getElementById(teacherFields[i]).readOnly = !isEditing;
+        }
+
+        document.getElementById('editTeacherBtn').classList.toggle('hidden', isEditing);
+        document.getElementById('saveTeacherBtn').classList.toggle('hidden', !isEditing);
+        document.getElementById('cancelTeacherBtn').classList.toggle('hidden', !isEditing);
+      }
+
+      function showProfileMessage(message, isError) {
+        var messageBox = document.getElementById('profileMessage');
+        messageBox.textContent = message || '';
+        messageBox.className = isError ? 'profile-message error visible' : 'profile-message visible';
+      }
+
+      function clearProfileMessage() {
+        var messageBox = document.getElementById('profileMessage');
+        messageBox.textContent = '';
+        messageBox.className = 'profile-message';
+      }
+
+      function setupTeacherProfileEvents() {
+        document.getElementById('editTeacherBtn').addEventListener('click', function() {
+          clearProfileMessage();
+          setTeacherEditMode(true);
+        });
+
+        document.getElementById('cancelTeacherBtn').addEventListener('click', function() {
+          clearProfileMessage();
+          if (originalProfile) {
+            fillTeacherForm(originalProfile);
+          }
+          setTeacherEditMode(false);
+        });
+
+        document.getElementById('teacherProfileForm').addEventListener('submit', async function(event) {
+          event.preventDefault();
+          clearProfileMessage();
+
+          var saveButton = document.getElementById('saveTeacherBtn');
+          saveButton.disabled = true;
+          saveButton.textContent = 'Saving...';
+
+          try {
+            await API.put('/api/account/profile', {
+              name: document.getElementById('teacherName').value,
+              teacher_number: document.getElementById('teacherNumber').value,
+              email: document.getElementById('teacherEmail').value,
+              phone: document.getElementById('teacherPhone').value,
+              phd: document.getElementById('teacherPhd').value
+            });
+
+            await loadTeacherProfile();
+            setTeacherEditMode(false);
+            showProfileMessage('Your account information was updated successfully.', false);
+          } catch (error) {
+            showProfileMessage(error.message, true);
+          } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Save Changes';
+          }
+        });
+      }
+
+      initTeacherHomePage();
+    </script>
+  </body>
+</html>

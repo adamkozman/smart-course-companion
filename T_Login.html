@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="english">
+
+
+<head> 
+    <title>Teachers Login - Concordia University</title>
+
+    <link rel="stylesheet" href="Styles/Header.css">
+    <link rel="stylesheet" href="Styles/LoginPage.css">
+    <link rel="stylesheet" href="Styles/Background.css">
+</head>
+
+
+<body>
+
+
+    <div class="Header">
+
+        <div class="leftside">
+          <div class="Title">Smart Course Companion</div>
+          
+        </div>
+
+        <div class="rightside">
+          <input type="checkbox" id="toggle" class="mini-menu">
+          <label for="toggle" class="Menu-button">
+              <img class="menu-icon" src="Icons/hamburger-menu copy.svg">
+              <div class="tooltip">Menu</div> 
+          </label>
+          <div class="box-to-hide">
+            <a href="Login_Front_Page.html"><button class="user-choice1"><div class="option1">Sign In</div></button></a>
+            <a href="SignUp_Front_Page.html"><button class="user-choice1"><div class="option2">Sign Up</div></button></a>
+          </div>
+        </div>
+    </div>
+
+
+        <div class="PageTitle">Teachers Login</div>
+        <div class="Login_Box">
+            <div class="Request">Please enter your teacher email and password to access your teacher account.</div>
+            <div class="Form">
+    <form action="/login-teacher" method="post">                <div>
+                    <label for="email">Teacher Email:</label>
+                    <input type="text" id="email" name="email" required>
+                </div>
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="button-container">
+                    <input class="user-choice2" type="submit" value="Submit">
+                    <input class="user-choice2" type="reset" value="Reset">
+                </div>
+                </form>
+            </div>
+            <div class="Options">
+                <div>If you have forgotten your passsword -> Click the link below</div>
+                <a href="Forgot_Password.html">Forgot Password</a>
+ 
+                <div>If you don't have an account -> Click the link below to create one</div>
+                <a href="T_SignUp.html" target="_blank">Create Account</a>
+            </div>
+        </div>
+
+
+
+
+    <div class="background"></div>
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html>

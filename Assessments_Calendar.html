@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Assessment Calendar — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/calendar.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+
+  <!-- HEADER — links swap based on role, set by JS below -->
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide" id="navMenu">
+        <!-- filled by JS based on role -->
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">Assessment Calendar</div>
+
+  <div class="calendar-page">
+    <div class="calendar-panel">
+
+      <div class="calendar-topbar">
+        <div class="month-nav">
+          <button class="nav-btn" id="prevBtn">&#8592;</button>
+          <div class="month-label" id="monthLabel">Loading…</div>
+          <button class="nav-btn" id="nextBtn">&#8594;</button>
+        </div>
+        <a id="backBtn" href="#" class="back-btn">&#8592; Back to Assessments</a>
+      </div>
+
+      <div id="calendarWrap">
+        <div class="empty-state"><span class="spinner"></span> Loading assessments…</div>
+      </div>
+
+      <div class="legend" id="legend"></div>
+
+    </div>
+  </div>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    const MONTHS = [
+      'January','February','March','April','May','June',
+      'July','August','September','October','November','December'
+    ];
+    const DAYS        = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const CHIP_COLORS = ['chip-0','chip-1','chip-2','chip-3','chip-4'];
+    const LEGEND_BG   = [
+      'rgba(47,128,237,0.7)',
+      'rgba(155,81,224,0.7)',
+      'rgba(235,87,87,0.7)',
+      'rgba(39,174,96,0.7)',
+      'rgba(242,153,74,0.7)'
+    ];
+
+    let allAssessments = [];
+    let courseColorMap = {};
+    let colorIndex     = 0;
+    let userRole       = null;
+
+    const now = new Date();
+    let viewYear  = now.getFullYear();
+    let viewMonth = now.getMonth();
+
+    async function init() {
+      // Find out who is logged in — works for both roles
+      const me = await API.get('/api/auth/me');
+      if (!me.loggedIn) {
+        window.location.href = 'Login_Front_Page.html';
+        return;
+      }
+
+      userRole = me.role;
+      buildNav(userRole);
+
+      // Set the back button target based on role
+      document.getElementById('backBtn').href =
+        userRole === 'teacher' ? 'T_Assessments.html' : 'S_Assessments.html';
+
+      setupLogout();
+      await loadAssessments();
+      renderCalendar();
+
+      document.getElementById('prevBtn').addEventListener('click', () => {
+        viewMonth--;
+        if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+        renderCalendar();
+      });
+
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        viewMonth++;
+        if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+        renderCalendar();
+      });
+    }
+
+    function buildNav(role) {
+      const menu = document.getElementById('navMenu');
+      if (role === 'teacher') {
+        menu.innerHTML = `
+          <a href="T_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+          <a href="Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+          <a href="T_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+          <a href="T_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+          <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>`;
+      } else {
+        menu.innerHTML = `
+          <a href="S_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+          <a href="S_Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+          <a href="S_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+          <a href="S_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+          <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>`;
+      }
+    }
+
+    async function loadAssessments() {
+      allAssessments = [];
+      courseColorMap = {};
+      colorIndex     = 0;
+
+      try {
+        if (userRole === 'teacher') {
+          await loadTeacherAssessments();
+        } else {
+          await loadStudentAssessments();
+        }
+      } catch (e) {
+        allAssessments = [];
+      }
+    }
+
+    async function loadTeacherAssessments() {
+      // Teacher sees all assessments across all their courses
+      const courses = await API.get('/api/teacher/courses');
+      const fetches = courses.map(c =>
+        API.get(`/api/teacher/assessments/${c.id}`)
+          .then(assessments => {
+            assessments.forEach(a => {
+              if (a.due_date) {
+                allAssessments.push({
+                  course_code: c.course_code,
+                  name:        a.name,
+                  type:        a.type,
+                  due_date:    a.due_date
+                });
+                if (!(c.course_code in courseColorMap)) {
+                  courseColorMap[c.course_code] = colorIndex % CHIP_COLORS.length;
+                  colorIndex++;
+                }
+              }
+            });
+          })
+          .catch(() => {})
+      );
+      await Promise.all(fetches);
+    }
+
+    async function loadStudentAssessments() {
+      // Student sees assessments from their enrolled courses
+      const courses = await API.get('/api/student/courses');
+      const fetches = courses.map(c =>
+        API.get(`/api/student/assessments/${c.id}`)
+          .then(assessments => {
+            assessments.forEach(a => {
+              if (a.due_date) {
+                allAssessments.push({
+                  course_code: c.course_code,
+                  name:        a.name,
+                  type:        a.type,
+                  due_date:    a.due_date
+                });
+                if (!(c.course_code in courseColorMap)) {
+                  courseColorMap[c.course_code] = colorIndex % CHIP_COLORS.length;
+                  colorIndex++;
+                }
+              }
+            });
+          })
+          .catch(() => {})
+      );
+      await Promise.all(fetches);
+    }
+
+    function renderCalendar() {
+      document.getElementById('monthLabel').textContent =
+        `${MONTHS[viewMonth]} ${viewYear}`;
+
+      const byDate = {};
+      allAssessments.forEach(a => {
+        if (!byDate[a.due_date]) byDate[a.due_date] = [];
+        byDate[a.due_date].push(a);
+      });
+
+      const firstDay    = new Date(viewYear, viewMonth, 1).getDay();
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const todayStr    = toDateStr(now);
+      const totalCells  = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+
+      let html = `
+        <table class="cal-table">
+          <thead>
+            <tr>${DAYS.map(d => `<th>${d}</th>`).join('')}</tr>
+          </thead>
+          <tbody>`;
+
+      for (let cell = 0; cell < totalCells; cell++) {
+        if (cell % 7 === 0) html += '<tr>';
+
+        const dayNum = cell - firstDay + 1;
+
+        if (dayNum < 1 || dayNum > daysInMonth) {
+          html += '<td class="other-month"></td>';
+        } else {
+          const dateStr = toDateStr(new Date(viewYear, viewMonth, dayNum));
+          const isToday = dateStr === todayStr;
+          const chips   = (byDate[dateStr] || []).map(a => {
+            const cls = CHIP_COLORS[courseColorMap[a.course_code] ?? 0];
+            return `<span class="assess-chip ${cls}"
+                      title="${escHtml(a.course_code)} — ${escHtml(a.name)} (${escHtml(a.type)})">
+                      ${escHtml(a.course_code)}: ${escHtml(a.name)}
+                    </span>`;
+          }).join('');
+
+          html += `
+            <td class="${isToday ? 'today' : ''}">
+              <div class="day-number">${dayNum}</div>
+              ${chips}
+            </td>`;
+        }
+
+        if (cell % 7 === 6) html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+
+      const wrap = document.getElementById('calendarWrap');
+      if (!allAssessments.length) {
+        wrap.innerHTML = '<div class="empty-state">No assessments with due dates found.</div>';
+      } else {
+        wrap.innerHTML = html;
+      }
+
+      // Legend
+      const legendEl = document.getElementById('legend');
+      legendEl.innerHTML = Object.keys(courseColorMap).map(code => {
+        const idx = courseColorMap[code];
+        return `<div class="legend-item">
+          <div class="legend-dot" style="background:${LEGEND_BG[idx % LEGEND_BG.length]}"></div>
+          <span>${escHtml(code)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function toDateStr(d) {
+      const y   = d.getFullYear();
+      const m   = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

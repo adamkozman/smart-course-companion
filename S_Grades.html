@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>My Grades — Smart Course Companion</title>
+  <link rel="stylesheet" href="Styles/HPS_Header.css">
+  <link rel="stylesheet" href="Styles/Grades.css">
+  <link rel="stylesheet" href="Styles/Background.css">
+</head>
+<body>
+  <div class="Header">
+    <div class="leftside">
+      <div class="Title">Smart Course Companion</div>
+    </div>
+    <div class="rightside">
+      <input type="checkbox" id="toggle" class="mini-menu">
+      <label for="toggle" class="Menu-button">
+        <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+        <div class="tooltip">Menu</div>
+      </label>
+      <div class="box-to-hide">
+        <a href="S_Home_Page.html"><button class="user-choice1"><div class="option1">Home</div></button></a>
+        <a href="S_Grades.html"><button class="user-choice1"><div class="option2">Grades</div></button></a>
+        <a href="S_Courses.html"><button class="user-choice1"><div class="option3">Courses</div></button></a>
+        <a href="S_Assessments.html"><button class="user-choice1"><div class="option4">Assessments</div></button></a>
+        <a href="#" class="logout-btn"><button class="user-choice1"><div class="option5">Sign Out</div></button></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="PageTitle">Grades</div>
+
+  <main class="grades-page">
+    <section class="grades-panel">
+
+      <div class="panel-header">
+        <div>
+          <h1>My Grades</h1>
+          <p id="studentName"></p>
+        </div>
+        <div class="controls">
+          <label class="course-picker" for="courseSelect">
+            <span>Filter by course</span>
+            <select id="courseSelect">
+              <option value="">— All courses —</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="gradesContent">
+        <div class="empty-state"><span class="spinner"></span> Loading grades…</div>
+      </div>
+
+    </section>
+  </main>
+
+  <div class="background"></div>
+
+  <script src="public/js/api.js"></script>
+  <script>
+    let allCourses = [];
+
+    async function init() {
+      await guardPage('student', 'S_Login.html');
+      setupLogout();
+
+      try {
+        const me = await API.get('/api/auth/me');
+        document.getElementById('studentName').textContent = me.name || '';
+      } catch(_) {}
+
+      await loadGrades();
+      document.getElementById('courseSelect').addEventListener('change', filterCourse);
+    }
+
+    async function loadGrades() {
+      try {
+        allCourses = await API.get('/api/student/grades');
+        populateSelect(allCourses);
+        renderAll(allCourses);
+      } catch (e) {
+        document.getElementById('gradesContent').innerHTML =
+          `<div class="empty-state" style="color:#ff8080">${e.message}</div>`;
+      }
+    }
+
+    function populateSelect(courses) {
+      const sel = document.getElementById('courseSelect');
+      sel.innerHTML = '<option value="">— All courses —</option>';
+      courses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.course_id;
+        opt.textContent = `${c.course_code} — ${c.section}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function filterCourse() {
+      const val = document.getElementById('courseSelect').value;
+      renderAll(val ? allCourses.filter(c => String(c.course_id) === val) : allCourses);
+    }
+
+    function renderAll(courses) {
+      const container = document.getElementById('gradesContent');
+      if (!courses.length) {
+        container.innerHTML =
+          '<div class="empty-state">No courses found. Enroll in a course first.</div>';
+        return;
+      }
+      container.innerHTML = courses.map(c => renderCourseCard(c)).join('');
+    }
+
+    function renderCourseCard(c) {
+      const rows = c.assessments.map(a => {
+        const earned = (a.earned_marks !== null && a.earned_marks !== undefined)
+          ? a.earned_marks : null;
+        const pct = earned !== null && a.total_marks
+          ? Math.round(earned / a.total_marks * 100) : null;
+        const display = earned !== null
+          ? `${earned} / ${a.total_marks} &nbsp;<strong>(${pct}%)</strong>`
+          : '<span style="opacity:0.45">Not graded yet</span>';
+        const status    = a.student_status || 'Pending';
+        const statusCls = status === 'Completed' ? 'status-completed' : 'status-pending';
+
+        return `
+        <tr>
+          <td>${escHtml(a.name)}</td>
+          <td>${escHtml(a.type)}</td>
+          <td>${display}</td>
+          <td>${a.weight}%</td>
+          <td><span class="status-pill ${statusCls}">${status}</span></td>
+        </tr>`;
+      }).join('');
+
+      const emptyRow = `<tr><td colspan="5" class="empty-cell">
+        No assessments for this course yet.</td></tr>`;
+
+      return `
+      <div class="student-course-block">
+        <div class="student-course-header">
+          <div>
+            <h2>${escHtml(c.course_code)} — ${escHtml(c.course_name)}</h2>
+            <p>Section ${escHtml(c.section)} • ${escHtml(c.term)} • Instructor: ${escHtml(c.teacher_name)}</p>
+          </div>
+          <div class="student-grade-summary">
+            <span>Current Average: <strong>${c.overall !== null ? c.overall+'%' : '—'}</strong></span>
+            <span>Letter Grade: <strong>${c.letter || '—'}</strong></span>
+          </div>
+        </div>
+        <div class="table-shell">
+          <table>
+            <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Type</th>
+                <th>Grade</th>
+                <th>Weight</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${c.assessments.length ? rows : emptyRow}</tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+  </script>
+</body>
+</html>

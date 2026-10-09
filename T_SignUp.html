@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="english">
+
+
+<head> 
+    <title>create account - concordia Teacher portal</title>
+
+    <link rel="stylesheet" href="Styles/Header.css">
+    <link rel="stylesheet" href="Styles/SignUpPage.css">
+    <link rel="stylesheet" href="Styles/Background.css">
+</head>
+
+
+<body>
+    <div class="Header">
+
+        <div class="leftside">
+          <div class="Title">Smart Course Companion</div>
+          
+        </div>
+
+        <div class="rightside">
+          <input type="checkbox" id="toggle" class="mini-menu">
+          <label for="toggle" class="Menu-button">
+              <img class="menu-icon" src="Icons/hamburger-menu copy.svg" alt="menu">
+              <div class="tooltip">Menu</div> 
+          </label>
+          <div class="box-to-hide">
+            <a href="Login_Front_Page.html"><button class="user-choice1"><div class="option1">Sign In</div></button></a>
+            <a href="SignUp_Front_Page.html"><button class="user-choice1"><div class="option2">Sign Up</div></button></a>
+          </div>
+        </div>
+    </div>
+
+
+        <div class="PageTitle">Teacher Sign-Up</div>
+        <div class="SignUp_Box">
+            <div class="Request">Please enter all of your teacher account information.</div>
+            <div class="Form">
+                    <form action="/signup-teacher" method="post">
+                        <div>
+                            <label for="name">Teacher Name:</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div>
+                            <label for="teacherId">Teacher Id:</label>
+                            <input type="text" id="teacherId" name="teacherId" required>
+                        </div>
+                        <div>
+                            <label for="email">Concordia Email:</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div>
+                            <label for="phone">Phone Number:</label>
+                            <input type="text" id="phone" name="phone" required>
+                        </div>
+                        <div>
+                            <label for="phd">PHD:</label>
+                            <input type="text" id="phd" name="phd" required>
+                        </div>
+                        <div>
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" name="password" required>
+                        </div>
+                        <div>
+                            <label for="confirmPassword">Confirm Password:</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                        </div>
+                        <div class="button-container">
+                            <input class="user-choice2" type="submit" value="Submit">
+                            <input class="user-choice2" type="reset" value="Reset">
+                        </div>
+                    </form>
+            </div>
+        </div>
+
+    <div class="background"></div>
+
+</body>
+
+
+
+</html>
