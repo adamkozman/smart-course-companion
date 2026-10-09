@@ -1,0 +1,112 @@
+
+.SignUp_Box{
+  background-color: white;
+  font-family: Roboto, Arial;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  min-height: 300px;
+  width: min(600px, 90%);
+  max-height: 78vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-width: 2px;
+  border-color: black;
+  border-style: solid;
+  gap: 20px;
+}
+
+.Request{
+  font-size: clamp(16px, 3vw, 25px);
+  min-height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  text-decoration: underline;
+}
+
+
+
+
+.Form form{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.Form{
+  height:auto;
+  width:min(380px, 100%);
+  margin: 0 auto;
+  border: black solid 1px;
+  padding: 14px;
+  overflow-y: auto;
+}
+
+.Form form div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.Form label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.Form input {
+  border: 1px solid black;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.button-container{
+  display: flex; 
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+  gap:10px;
+}
+
+.user-choice2{
+  width: min(100px, 80%);
+  border: 0;
+  background-color: rgb(227, 227, 227);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 10px 20px;
+}
+
+.user-choice2:hover{
+  background-color: rgb(157, 0, 0);
+  color: white;
+}
+
+.user-choice2:active{
+  background-color: rgb(225, 0, 0);
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .Center-form {
+    width: 95%;
+    padding: 15px;
+    gap: 15px;
+  }
+  
+  .box1 {
+    margin-bottom: 20px;
+  }
+  
+  .user-choice2 {
+    width: 100%;
+  }
+}

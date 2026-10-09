@@ -1,0 +1,164 @@
+.Header{
+  display: flex;
+  height: clamp(45px, 8vw, 55px);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index: 1000;
+  background-color: white;
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-bottom-color: rgb(230,230,230);
+  padding: 0 clamp(10px, 3vw, 20px);
+  box-sizing: border-box;
+
+}
+
+.leftside{
+  display: flex;
+  align-items: center;
+}
+
+.Title{
+  font-size: clamp(20px, 5vw, 40px);
+  font-weight: 900;
+  font-family: Roboto, Arial;
+  white-space: nowrap;
+}
+
+.rightside{
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.Menu-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border: 0;
+  background-color: white;
+  cursor: pointer;
+  width: clamp(40px, 8vw, 50px);
+  margin-right: clamp(10px, 3vw, 50px);
+  padding: 5px;
+}
+
+.Menu-button .tooltip{
+  position: absolute;
+  background-color: gray;
+  color: white;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  border-radius: 2px;
+  font-size: clamp(10px, 2vw, 12px);
+  font-family: Roboto, Arial;
+  bottom: -30px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.Menu-button:hover .tooltip{
+  opacity: 1;
+}
+
+.Menu-button:active{
+  background-color: rgb(244, 243, 243);
+}
+
+.menu-icon{
+  height: clamp(30px, 6vw, 40px);
+  margin-left: clamp(10px, 3vw, 24px);
+  margin-right: clamp(10px, 3vw, 24px);
+}
+
+.mini-menu {
+    display: none;
+}
+
+.box-to-hide {
+    width: clamp(120px, 25vw, 150px);
+    min-height: 215px;
+    background-color: white;
+    display: none;
+    position: absolute;
+    top:100%;
+    right:0;
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+    z-index: 2000;
+}
+
+#toggle:checked + .Menu-button + .box-to-hide {
+    display: block;
+}
+
+.option1,
+.option2,
+.option3,
+.option4,
+.option5 {
+  font-size: clamp(14px, 2.5vw, 18px);
+  padding: clamp(8px, 2vw, 10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width:100%;
+}
+
+.user-choice1{
+  width:100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border: 0;
+  background-color: none;
+  cursor: pointer;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.user-choice1:hover{
+  background-color: rgb(157, 0, 0);
+  color: white;
+}
+
+.user-choice1:active{
+  background-color: rgb(225, 0, 0);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .Title {
+    font-size: 18px;
+  }
+  
+  .menu-icon {
+    height: 30px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+  
+  .Menu-button {
+    width: 40px;
+    margin-right: 10px;
+  }
+  
+  .box-to-hide {
+    width: 150px;
+  }
+}
+

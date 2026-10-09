@@ -1,0 +1,207 @@
+/* ── Teacher Courses Page ──────────────────────── */
+.Course_Page {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 180px 20px 40px;
+  gap: 28px;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+/* ── Create form box ───────────────────────────── */
+.Course_Creation {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  width: 260px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #fff;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 160px;
+}
+
+.Course_Creation h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+
+.Course_Creation label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.Course_Creation input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  transition: border 0.2s;
+  display: block;
+}
+
+.Course_Creation input[type="text"]::placeholder { color: rgba(255,255,255,0.45); }
+
+.Course_Creation input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.75);
+}
+
+.Course_Creation p { margin: 6px 0; }
+
+/* ── Courses grid ──────────────────────────────── */
+.Teacher_Courses {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+  flex: 1;
+  max-width: 1000px;
+}
+
+/* ── Single course card ────────────────────────── */
+.Single_Course {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 180px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.Single_Course:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+}
+
+.Single_Course header h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #fff;
+}
+
+.Single_Course header p {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+  margin: 2px 0;
+}
+
+.Single_Course p {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+  margin: 4px 0;
+}
+
+.Single_Course strong { color: #fff; }
+
+.Single_Course footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.course-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+.course-status.active {
+  background: rgba(50,200,100,0.25);
+  border: 1px solid rgba(50,200,100,0.55);
+  color: #afffcb;
+}
+
+.course-status.inactive {
+  background: rgba(200,50,50,0.25);
+  border: 1px solid rgba(200,50,50,0.55);
+  color: #ffb3b3;
+}
+
+/* ── Buttons ───────────────────────────────────── */
+.user-choice2 {
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.user-choice2:hover {
+  background: rgba(157,0,0,0.7);
+  border-color: rgba(255,80,80,0.5);
+}
+
+.user-choice2.primary {
+  background: rgba(47,128,237,0.45);
+  border-color: rgba(86,204,242,0.55);
+}
+
+.user-choice2.primary:hover {
+  background: rgba(47,128,237,0.8);
+}
+
+.user-choice2.toggle-btn.active {
+  background: rgba(200,50,50,0.35);
+  border-color: rgba(255,80,80,0.5);
+}
+
+.user-choice2.toggle-btn.active:hover {
+  background: rgba(200,50,50,0.7);
+}
+
+.empty-state {
+  grid-column: 1/-1;
+  text-align: center;
+  color: rgba(255,255,255,0.55);
+  padding: 30px;
+}
+
+.form-error {
+  color: #ff8080;
+  font-size: 0.78rem;
+  margin-top: 2px;
+  display: none;
+}
+
+.form-error.visible { display: block; }
+
+@media (max-width: 768px) {
+  .Course_Page { flex-direction: column; align-items: center; padding: 140px 12px 40px; }
+  .Course_Creation { position: static; width: 100%; max-width: 400px; }
+  .Teacher_Courses { grid-template-columns: 1fr; width: 100%; max-width: 400px; }
+}

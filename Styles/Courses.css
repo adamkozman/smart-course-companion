@@ -1,0 +1,302 @@
+/* ── Courses page layout ────────────────────── */
+.Courses {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 180px 20px 40px;
+  gap: 24px;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+/* ── "Join a Course" sidebar box ─────────────── */
+.Add_Courses {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  width: 240px;
+  min-height: 320px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #fff;
+  flex-shrink: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 160px;
+}
+
+.Add_Courses h2 {
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.Add_Courses label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.Add_Courses input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+  transition: border 0.2s, background 0.2s;
+}
+
+.Add_Courses input[type="text"]::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.Add_Courses input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.Add_Courses p {
+  margin: 6px 0;
+}
+
+/* ── Course grid ─────────────────────────────── */
+.Course_Grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  flex: 1;
+  max-width: 1100px;
+}
+
+/* ── Individual course box ───────────────────── */
+.Course_Box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s, box-shadow 0.2s;
+  min-height: 380px;
+}
+
+.Course_Box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.Course_Box header h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0 0 4px;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.Course_Box header p {
+  margin: 2px 0;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+}
+
+.course-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+.course-status.active {
+  background: rgba(50, 200, 100, 0.3);
+  border: 1px solid rgba(50, 200, 100, 0.6);
+  color: #afffcb;
+}
+
+.course-status.inactive {
+  background: rgba(200, 50, 50, 0.3);
+  border: 1px solid rgba(200, 50, 50, 0.6);
+  color: #ffb3b3;
+}
+
+.Course_Box p {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  margin: 4px 0;
+}
+
+.Course_Box strong {
+  color: #fff;
+}
+
+.Course_Box h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 12px 0 4px;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  padding-top: 10px;
+}
+
+.Course_Box ul {
+  margin: 4px 0;
+  padding-left: 18px;
+}
+
+.Course_Box li {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 2px;
+}
+
+/* Progress bar */
+.Course_Box progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  border: none;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.2);
+  display: block;
+  margin-top: 4px;
+}
+
+.Course_Box progress::-webkit-progress-bar {
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+}
+
+.Course_Box progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #56ccf2, #2f80ed);
+  border-radius: 4px;
+}
+
+.Course_Box progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #56ccf2, #2f80ed);
+  border-radius: 4px;
+}
+
+.progress-label {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.7);
+  margin: 2px 0 0;
+}
+
+/* ── Buttons ─────────────────────────────────── */
+.button-container {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.user-choice2 {
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.user-choice2:hover {
+  background: rgba(157, 0, 0, 0.7);
+  border-color: rgba(255,80,80,0.5);
+  color: #fff;
+}
+
+.user-choice2:active {
+  background: rgba(200, 0, 0, 0.8);
+}
+
+.user-choice2.primary {
+  background: rgba(47,128,237,0.5);
+  border-color: rgba(86,204,242,0.6);
+}
+
+.user-choice2.primary:hover {
+  background: rgba(47,128,237,0.8);
+}
+
+/* ── Empty state ─────────────────────────────── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
+  padding: 40px;
+}
+
+/* ── Error message ───────────────────────────── */
+.form-error {
+  color: #ff8080;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: none;
+}
+
+.form-error.visible {
+  display: block;
+}
+
+/* ── Spinner ─────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .Courses {
+    flex-direction: column;
+    align-items: center;
+    padding: 140px 12px 40px;
+  }
+  .Add_Courses {
+    position: static;
+    width: 100%;
+    max-width: 400px;
+  }
+  .Course_Grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 400px;
+  }
+}

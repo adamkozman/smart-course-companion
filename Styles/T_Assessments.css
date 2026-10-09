@@ -1,0 +1,233 @@
+/* ── Teacher Assessments Page ─────────────────── */
+.assessments-page {
+  padding: 180px 20px 40px;
+  min-height: 100vh;
+}
+
+.Container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+/* ── Glass base ──────────────────────────────── */
+.S_Box1, .Box3, .stats-box {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 22px;
+  color: #fff;
+}
+
+.S_Box1 {
+  width: 270px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-self: flex-start;
+  position: sticky;
+  top: 160px;
+}
+
+.Box3 {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stats-box {
+  flex: 1;
+  min-width: 260px;
+  align-self: flex-start;
+}
+
+/* ── Headings ────────────────────────────────── */
+.S_Box1 h2, .Box3 h2, .stats-box h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* ── Labels / inputs / selects ───────────────── */
+.S_Box1 label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+.S_Box1 input, .S_Box1 select {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 0.82rem;
+  box-sizing: border-box;
+}
+
+.S_Box1 input::placeholder { color: rgba(255,255,255,0.42); }
+.S_Box1 input:focus, .S_Box1 select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.7);
+}
+
+.S_Box1 select option { background: #333; color: #fff; }
+
+/* ── Course selector row ─────────────────────── */
+.course-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+.course-selector select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.course-selector select option { background: #333; }
+.course-selector select:focus { outline: none; border-color: rgba(255,255,255,0.75); }
+
+/* ── Assessment cards ────────────────────────── */
+.assessment-card {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: background 0.2s;
+}
+
+.assessment-card:hover { background: rgba(255,255,255,0.18); }
+
+.assessment-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.assessment-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  align-items: center;
+}
+
+/* ── Stats rows ──────────────────────────────── */
+.stat-row {
+  margin: 8px 0;
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.85);
+}
+
+.stat-row strong { color: #fff; }
+
+.stat-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 3px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #56ccf2, #2f80ed);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* ── Buttons ─────────────────────────────────── */
+.user-choice2 {
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.user-choice2:hover {
+  background: rgba(157,0,0,0.7);
+  border-color: rgba(255,80,80,0.5);
+}
+
+.user-choice2.primary {
+  background: rgba(47,128,237,0.4);
+  border-color: rgba(86,204,242,0.55);
+}
+
+.user-choice2.primary:hover { background: rgba(47,128,237,0.8); }
+
+.user-choice2.danger { background: rgba(180,30,30,0.35); border-color: rgba(255,80,80,0.5); }
+.user-choice2.danger:hover { background: rgba(180,30,30,0.75); }
+
+/* ── Weight indicator ────────────────────────── */
+.weight-indicator {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.7);
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.weight-indicator.over { color: #ff8080; background: rgba(200,30,30,0.2); }
+
+.empty-state {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.88rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.form-error {
+  color: #ff8080;
+  font-size: 0.78rem;
+  margin-top: 2px;
+  display: none;
+}
+.form-error.visible { display: block; }
+
+@media (max-width: 900px) {
+  .Container { flex-direction: column; align-items: stretch; }
+  .S_Box1 { position: static; width: 100%; }
+}
+@media (max-width: 600px) {
+  .assessments-page { padding: 140px 12px 40px; }
+}

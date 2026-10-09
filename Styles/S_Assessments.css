@@ -1,0 +1,278 @@
+/* ── Student Assessments Page ─────────────────── */
+.assessments-page {
+  padding: 180px 20px 40px;
+  min-height: 100vh;
+}
+
+.view-calendar-btn {
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  z-index: 200;
+}
+
+.Grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── All glass boxes ─────────────────────────── */
+.Box1, .Box2, .Box3 {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+}
+
+.Box1 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-self: flex-start;
+  position: sticky;
+  top: 160px;
+}
+
+.Box2 {
+  align-self: flex-start;
+}
+
+.Box3 {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Labels & selects in boxes ───────────────── */
+.Box1 label, .Box2 label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+.Box1 select, .Box1 input[type="text"] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 0.85rem;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.Box1 select option {
+  background: #333;
+  color: #fff;
+}
+
+.Box1 input[type="text"]::placeholder {
+  color: rgba(255,255,255,0.45);
+}
+
+.Box1 select:focus, .Box1 input[type="text"]:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.7);
+}
+
+/* ── Box 2 summary ───────────────────────────── */
+.Box2 h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 10px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.Box2 p, .Box3 p {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.85rem;
+  margin: 4px 0;
+}
+
+.Box2 strong {
+  color: #fff;
+}
+
+.Box2 ul {
+  padding-left: 18px;
+  margin: 6px 0;
+}
+
+.Box2 li {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 3px;
+}
+
+.Box2 progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: rgba(255,255,255,0.2);
+  display: block;
+  margin: 6px 0 0;
+}
+
+.Box2 progress::-webkit-progress-bar { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.Box2 progress::-webkit-progress-value { background: linear-gradient(90deg, #56ccf2, #2f80ed); border-radius: 4px; }
+.Box2 progress::-moz-progress-bar { background: linear-gradient(90deg, #56ccf2, #2f80ed); border-radius: 4px; }
+
+/* ── Assessment cards ────────────────────────── */
+.Box3 h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 4px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.assessment-card {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.assessment-card:hover {
+  background: rgba(255,255,255,0.18);
+}
+
+.assessment-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.assessment-card p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.75);
+}
+
+.assessment-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+}
+
+.assessment-card input[type="number"],
+.assessment-card select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 0.82rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.assessment-card input[type="number"]:focus,
+.assessment-card select:focus {
+  outline: none;
+  border-color: rgba(255,255,255,0.7);
+}
+
+.assessment-card select option { background: #333; }
+
+.card-row {
+  display: flex;
+  gap: 8px;
+}
+
+.card-row label { flex: 1; }
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.pending {
+  background: rgba(255,180,0,0.25);
+  border: 1px solid rgba(255,180,0,0.5);
+  color: #ffd97d;
+}
+
+.status-badge.completed {
+  background: rgba(50,200,100,0.25);
+  border: 1px solid rgba(50,200,100,0.5);
+  color: #afffcb;
+}
+
+/* ── Buttons ─────────────────────────────────── */
+.user-choice2 {
+  border: 1.5px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.user-choice2:hover {
+  background: rgba(157,0,0,0.7);
+  border-color: rgba(255,80,80,0.5);
+}
+
+.user-choice2.save-btn {
+  background: rgba(47,128,237,0.4);
+  border-color: rgba(86,204,242,0.5);
+  align-self: flex-start;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+}
+
+.user-choice2.save-btn:hover {
+  background: rgba(47,128,237,0.75);
+}
+
+.empty-state {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+@media (max-width: 900px) {
+  .Grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .Box1 { grid-column: 1 / -1; position: static; }
+}
+
+@media (max-width: 600px) {
+  .Grid {
+    grid-template-columns: 1fr;
+  }
+  .assessments-page { padding: 140px 12px 40px; }
+}

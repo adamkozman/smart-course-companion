@@ -1,0 +1,193 @@
+/* this is the main grades page container -Hanad */
+.grades-page {
+  padding: 180px 20px 40px;
+  min-height: 100vh;
+}
+
+/* this is the main panel styling -Hanad */
+.grades-panel {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: #ffffff26; /* was rgba(255,255,255,0.15) */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid #ffffff59; /* rgba(255,255,255,0.35) */
+  box-shadow: 0 8px 32px #00000040; /* rgba(0,0,0,0.25) */
+  border-radius: 16px;
+  padding: 24px;
+  color: #ffffff;
+}
+
+/* this is the header layout -Hanad */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* this is header titles -Hanad */
+.panel-header h1,
+.panel-header h2 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 1px 4px #0000004d; /* rgba(0,0,0,0.3) */
+}
+
+.panel-header h2 {
+  font-size: 1.2rem;
+}
+
+/* this is header subtitle text -Hanad */
+.panel-header p {
+  margin: 0;
+  color: #ffffffcc; /* rgba(255,255,255,0.8) */
+  font-size: 0.9rem;
+}
+
+/* this is controls container -Hanad */
+.controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* this is course picker styling -Hanad */
+.course-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #ffffffe0; /* rgba(255,255,255,0.88) */
+}
+
+/* this is input/select styling -Hanad */
+.controls select,
+.student-grade-table input,
+.student-grade-table select {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #ffffff59;
+  background: #ffffff1f;
+  color: #ffffff;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+/* this is focus effect -Hanad */
+.controls select:focus,
+.student-grade-table input:focus,
+.student-grade-table select:focus {
+  outline: none;
+  border-color: #ffffffbf;
+}
+
+/* this is dropdown options -Hanad */
+.controls select option,
+.student-grade-table select option {
+  background: #333333;
+  color: #ffffff;
+}
+
+/* this is table container -Hanad */
+.table-shell {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid #ffffff33;
+  background: #0c122261; /* rgba(12,18,34,0.38) */
+}
+
+/* this is table base -Hanad */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+/* this is table header -Hanad */
+th {
+  background: #16213ed1; /* rgba(22,33,62,0.82) */
+  color: #ffffff;
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* this is table cells -Hanad */
+td {
+  padding: 14px 16px;
+  color: #ffffffeb;
+  font-size: 0.9rem;
+  border-top: 1px solid #ffffff1f;
+}
+
+/* this is hover effect -Hanad */
+tbody tr:hover td {
+  background: #ffffff14;
+}
+
+/* this is grade card -Hanad */
+.course-grade-card {
+  background: #ffffff1f;
+  border: 1px solid #ffffff33;
+  border-radius: 14px;
+  padding: 18px;
+}
+
+/* this is action button -Hanad */
+.table-action-button {
+  border: 1.5px solid #ffffff66;
+  background: #2f80ed73;
+  color: #ffffff;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* this is hover button effect -Hanad */
+.table-action-button:hover {
+  background: #2f80edcc;
+  border-color: #56ccf28c;
+}
+
+/* this is loading spinner -Hanad */
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff4d;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* this is animation for spinner -Hanad */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* this is status completed style -Hanad */
+.status-pill.status-completed {
+  background: #32c86440;
+  border: 1px solid #32c86480;
+  color: #afffcb;
+}
+
+/* this is status pending style -Hanad */
+.status-pill.status-pending {
+  background: #ffb40040;
+  border: 1px solid #ffb40080;
+  color: #ffd97d;
+}
